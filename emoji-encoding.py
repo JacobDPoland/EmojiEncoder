@@ -9,26 +9,18 @@ all_emojis = list(emoji.EMOJI_DATA.keys())
 # Filter emojis to exclude variations and ensure they display well
 filtered_emojis = [e for e in all_emojis if len(e) == 1 and e.isprintable()]
 
-# Set random seed to keep mapping consistent across runs
+# Use a consistent random seed
 random.seed(42)
+random.shuffle(filtered_emojis)  # Ensures emojis are assigned in the same order each run
 
-# Dictionary to store dynamically assigned mappings
-char_to_emoji = {}
-emoji_to_char = {}
-
-def get_or_assign_emoji(char):
-    """Assigns an emoji to a character if it hasn't been assigned yet."""
-    if char not in char_to_emoji:
-        if not filtered_emojis:
-            raise ValueError("Ran out of unique emojis!")
-        chosen_emoji = filtered_emojis.pop(random.randint(0, len(filtered_emojis) - 1))
-        char_to_emoji[char] = chosen_emoji
-        emoji_to_char[chosen_emoji] = char
-    return char_to_emoji[char]
+# Create a fixed mapping for standard ASCII characters
+all_chars = [chr(i) for i in range(32, 127)]  # Printable ASCII characters
+char_to_emoji = {char: filtered_emojis[i] for i, char in enumerate(all_chars) if i < len(filtered_emojis)}
+emoji_to_char = {v: k for k, v in char_to_emoji.items()}
 
 def encode_text(text):
     """Encodes text by replacing each character with an assigned emoji."""
-    return ''.join(get_or_assign_emoji(char) for char in text)
+    return ''.join(char_to_emoji.get(char, char) for char in text)
 
 def decode_text(text):
     """Decodes text back to its original form using the stored mapping."""
